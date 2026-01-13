@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ヨーヨートリック練習帳</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 10px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-area {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button#add-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button#add-btn:hover {
+            background-color: #0056b3;
+        }
+        .trick-list {
+            list-style: none;
+            padding: 0;
+        }
+        .trick-item {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .trick-info {
+            flex-grow: 1;
+        }
+        .trick-name {
+            font-weight: bold;
+            display: block;
+        }
+        .trick-url {
+            font-size: 0.85em;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .trick-url:hover {
+            text-decoration: underline;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .status-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 80px;
+            font-size: 0.9em;
+        }
+        .status-unlearned { background-color: #e0e0e0; color: #333; }
+        .status-practicing { background-color: #fff3cd; color: #856404; }
+        .status-completed { background-color: #d4edda; color: #155724; }
+        
+        .delete-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ヨーヨートリック練習帳</h1>
+
+    <div class="input-area">
+        <div class="input-group">
+            <label for="trick-name">トリック名</label>
+            <input type="text" id="trick-name" placeholder="例: トラピーズ">
+        </div>
+        <div class="input-group">
+            <label for="trick-url">参考URL (任意)</label>
+            <input type="text" id="trick-url" placeholder="https://...">
+        </div>
+        <button id="add-btn">追加</button>
+    </div>
+
+    <ul id="trick-list" class="trick-list"></ul>
+
+    <script>
+        const trickNameInput = document.getElementById('trick-name');
+        const trickUrlInput = document.getElementById('trick-url');
+        const addBtn = document.getElementById('add-btn');
+        const trickListElement = document.getElementById('trick-list');
+
+        let tricks = JSON.parse(localStorage.getItem('yoyo-tricks')) || [];
+
+        const STATUS_LABELS = ['未習得', '練習中', 'できた'];
+        const STATUS_CLASSES = ['status-unlearned', 'status-practicing', 'status-completed'];
+
+        function saveTricks() {
+            localStorage.setItem('yoyo-tricks', JSON.stringify(tricks));
+        }
+
+        function renderTricks() {
+            trickListElement.innerHTML = '';
+            tricks.forEach((trick, index) => {
+                const li = document.createElement('li');
+                li.className = 'trick-item';
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'trick-info';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'trick-name';
+                nameSpan.textContent = trick.name;
+                infoDiv.appendChild(nameSpan);
+
+                if (trick.url) {
+                    const urlLink = document.createElement('a');
+                    urlLink.className = 'trick-url';
+                    urlLink.href = trick.url;
+                    urlLink.target = '_blank';
+                    urlLink.textContent = '参考URL';
+                    infoDiv.appendChild(urlLink);
+                }
+
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'controls';
+
+                const statusBtn = document.createElement('button');
+                statusBtn.className = `status-btn ${STATUS_CLASSES[trick.status]}`;
+                statusBtn.textContent = STATUS_LABELS[trick.status];
+                statusBtn.onclick = () => {
+                    trick.status = (trick.status + 1) % 3;
+                    saveTricks();
+                    renderTricks();
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '削除';
+                deleteBtn.onclick = () => {
+                    if (confirm('このトリックを削除しますか？')) {
+                        tricks.splice(index, 1);
+                        saveTricks();
+                        renderTricks();
+                    }
+                };
+
+                controlsDiv.appendChild(statusBtn);
+                controlsDiv.appendChild(deleteBtn);
+
+                li.appendChild(infoDiv);
+                li.appendChild(controlsDiv);
+                trickListElement.appendChild(li);
+            });
+        }
+
+        addBtn.onclick = () => {
+            const name = trickNameInput.value.trim();
+            const url = trickUrlInput.value.trim();
+
+            if (!name) {
+                alert('トリック名を入力してください');
+                return;
+            }
+
+            tricks.push({
+                name: name,
+                url: url,
+                status: 0 // 未習得
+            });
+
+            saveTricks();
+            renderTricks();
+
+            trickNameInput.value = '';
+            trickUrlInput.value = '';
+        };
+
+        // 初期表示
+        renderTricks();
+    </script>
+</body>
+</html>
