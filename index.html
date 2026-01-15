@@ -1,225 +1,326 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>trick shelf</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0;
-      padding: 12px;
-      background: #fafafa;
-    }
-
-    h1 {
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-
-    .form {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    input, textarea, button {
-      font-size: 16px;
-      padding: 8px;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .item-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 6px;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .item-card.edit-mode {
-      background: #ffecec;
-    }
-
-    .item-left a {
-      text-decoration: none;
-      color: #333;
-      font-size: 16px;
-    }
-
-    .item-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .icon-btn {
-      background: none;
-      border: none;
-      font-size: 18px;
-      padding: 6px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trick Shelf Mobile</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --secondary-text: #6c757d;
+            --danger-color: #dc3545;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.5;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        /* フォームエリア */
+        .form-container {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        textarea {
+            height: 80px;
+            resize: none;
+        }
+        #add-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        /* リストエリア */
+        .list-container {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .item-card {
+            background: var(--card-bg);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .item-card.pressing {
+            background-color: #f0f0f0;
+        }
+        .item-main {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .item-title {
+            font-weight: bold;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            word-break: break-all;
+        }
+        .info-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--secondary-text);
+            padding: 5px;
+            cursor: pointer;
+        }
+        /* 編集モード（削除ボタン） */
+        .delete-btn {
+            display: none;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+        .edit-mode .delete-btn {
+            display: block;
+        }
+        .edit-mode .info-btn {
+            display: none;
+        }
+        .edit-hint {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>trick shelf</h1>
+    <h1>Trick Shelf Mobile</h1>
 
-<div class="form">
-  <input id="title" placeholder="トリック名" />
-  <input id="url" placeholder="URL" />
-  <textarea id="memo" placeholder="コツ・気づき（任意）"></textarea>
-  <button id="add">追加</button>
-</div>
+    <div class="form-container">
+        <div class="form-group">
+            <label>タイトル</label>
+            <input type="text" id="input-title" placeholder="トリック名">
+        </div>
+        <div class="form-group">
+            <label>URL</label>
+            <input type="text" id="input-url" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label>メモ</label>
+            <textarea id="input-memo" placeholder="コツや注意点など"></textarea>
+        </div>
+        <button id="add-btn">追加する</button>
+    </div>
 
-<ul id="list"></ul>
+    <div class="edit-hint">長押し：編集・削除モード切替</div>
+    <ul id="item-list" class="list-container"></ul>
 
-<script>
-  const OLD_KEY = "yoyo-tricks";
-  const STORAGE_KEY = "trickShelfItems";
+    <script>
+        const OLD_KEY = 'yoyo-tricks';
+        const NEW_KEY = 'trickShelfItems';
+        
+        const listEl = document.getElementById('item-list');
+        const titleInput = document.getElementById('input-title');
+        const urlInput = document.getElementById('input-url');
+        const memoInput = document.getElementById('input-memo');
+        const addBtn = document.getElementById('add-btn');
 
-  // ===== データ読み込み =====
-  let items = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        let items = [];
+        let isEditMode = false;
 
-  // ===== 旧データ移行（1回のみ）=====
-  const oldData = JSON.parse(localStorage.getItem(OLD_KEY) || "null");
-  if (oldData && items.length === 0) {
-    items = oldData.map((item, index) => ({
-      title: item.name,
-      url: item.url || "",
-      memo: item.memo || "",
-      createdAt: Date.now() - index,
-      order: index
-    }));
-    save();
-  }
+        // 【移行処理】
+        function migrateData() {
+            const oldData = localStorage.getItem(OLD_KEY);
+            const newData = localStorage.getItem(NEW_KEY);
 
-  // ===== 編集モード：行単位 =====
-  let editIndex = null;
-
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }
-
-  function render() {
-    const list = document.getElementById("list");
-    list.innerHTML = "";
-
-    // order を必ず使う
-    items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-    items.forEach((item, index) => {
-      const li = document.createElement("li");
-      li.className = "item-card" + (editIndex === index ? " edit-mode" : "");
-
-      // 左：タイトルリンク
-      const left = document.createElement("div");
-      left.className = "item-left";
-
-      const a = document.createElement("a");
-      a.href = item.url;
-      a.textContent = item.title;
-      a.target = "_blank";
-      a.rel = "noopener";
-
-      left.appendChild(a);
-
-      // 右：操作
-      const right = document.createElement("div");
-      right.className = "item-right";
-
-      // ⓘ ボタン
-      const info = document.createElement("button");
-      info.className = "icon-btn";
-      info.textContent = "ⓘ";
-
-      info.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        alert(item.memo || "メモなし");
-      };
-
-      info.oncontextmenu = (e) => {
-        e.preventDefault();
-        const text = prompt("メモを編集", item.memo || "");
-        if (text !== null) {
-          item.memo = text;
-          save();
+            if (oldData && !newData) {
+                try {
+                    const parsedOld = JSON.parse(oldData);
+                    if (Array.isArray(parsedOld)) {
+                        items = parsedOld.map((oldItem, index) => ({
+                            title: oldItem.name || '無題',
+                            url: oldItem.url || '',
+                            memo: oldItem.memo || '',
+                            createdAt: Date.now() + index, // 重複回避のため少しずらす
+                            order: index
+                        }));
+                        save();
+                        console.log('Data migrated successfully.');
+                    }
+                } catch (e) {
+                    console.error('Migration failed:', e);
+                }
+            } else if (newData) {
+                items = JSON.parse(newData);
+            }
         }
-      };
 
-      right.appendChild(info);
+        function save() {
+            localStorage.setItem(NEW_KEY, JSON.stringify(items));
+        }
 
-      // 削除（編集モード中のみ）
-      if (editIndex === index) {
-        const del = document.createElement("button");
-        del.className = "icon-btn";
-        del.textContent = "🗑️";
-        del.onclick = () => {
-          if (confirm("削除しますか？")) {
-            items.splice(index, 1);
-            items.forEach((it, i) => it.order = i);
-            editIndex = null;
+        function render() {
+            listEl.innerHTML = '';
+            items.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'item-card' + (isEditMode ? ' edit-mode' : '');
+                
+                // 長押し判定用
+                let pressTimer;
+                const startPress = () => {
+                    li.classList.add('pressing');
+                    pressTimer = setTimeout(() => {
+                        isEditMode = !isEditMode;
+                        render();
+                    }, 600);
+                };
+                const endPress = () => {
+                    clearTimeout(pressTimer);
+                    li.classList.remove('pressing');
+                };
+
+                li.onmousedown = startPress;
+                li.onmouseup = endPress;
+                li.ontouchstart = startPress;
+                li.ontouchend = endPress;
+
+                // メインコンテンツ
+                const main = document.createElement('div');
+                main.className = 'item-main';
+
+                const a = document.createElement('a');
+                a.className = 'item-title';
+                a.textContent = item.title;
+                if (item.url) {
+                    a.href = item.url;
+                    a.target = '_blank';
+                }
+                a.onclick = (e) => {
+                    if (isEditMode) e.preventDefault();
+                    e.stopPropagation();
+                };
+                main.appendChild(a);
+
+                // ⓘ ボタン
+                const infoBtn = document.createElement('button');
+                infoBtn.className = 'info-btn';
+                infoBtn.textContent = 'ⓘ';
+                
+                let infoPressTimer;
+                infoBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    alert(item.memo || 'メモなし');
+                };
+                // ⓘ ボタン長押しでメモ編集
+                infoBtn.ontouchstart = (e) => {
+                    e.stopPropagation();
+                    infoPressTimer = setTimeout(() => {
+                        const newMemo = prompt('メモを編集', item.memo || '');
+                        if (newMemo !== null) {
+                            item.memo = newMemo;
+                            save();
+                            render();
+                        }
+                    }, 600);
+                };
+                infoBtn.ontouchend = () => clearTimeout(infoPressTimer);
+                infoBtn.onmousedown = infoBtn.ontouchstart;
+                infoBtn.onmouseup = infoBtn.ontouchend;
+
+                // 削除ボタン
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.textContent = '🗑️';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`「${item.title}」を削除しますか？`)) {
+                        items.splice(index, 1);
+                        save();
+                        render();
+                    }
+                };
+
+                li.appendChild(main);
+                li.appendChild(infoBtn);
+                li.appendChild(delBtn);
+                listEl.appendChild(li);
+            });
+        }
+
+        addBtn.onclick = () => {
+            const title = titleInput.value.trim();
+            const url = urlInput.value.trim();
+            const memo = memoInput.value.trim();
+
+            if (!title) {
+                alert('タイトルを入力してください');
+                return;
+            }
+
+            const newItem = {
+                title: title,
+                url: url,
+                memo: memo,
+                createdAt: Date.now(),
+                order: items.length
+            };
+
+            items.push(newItem);
             save();
             render();
-          }
+
+            titleInput.value = '';
+            urlInput.value = '';
+            memoInput.value = '';
         };
-        right.appendChild(del);
-      }
 
-      // 長押しで編集モード切替（行単位）
-      let timer;
-      li.addEventListener("touchstart", () => {
-        timer = setTimeout(() => {
-          editIndex = (editIndex === index) ? null : index;
-          render();
-        }, 600);
-      });
-      li.addEventListener("touchend", () => clearTimeout(timer));
-
-      li.appendChild(left);
-      li.appendChild(right);
-      list.appendChild(li);
-    });
-  }
-
-  // ===== 追加 =====
-  document.getElementById("add").onclick = () => {
-    const title = document.getElementById("title").value.trim();
-    const url = document.getElementById("url").value.trim();
-    const memo = document.getElementById("memo").value.trim();
-
-    if (!title || !url) return;
-
-    items.push({
-      title,
-      url,
-      memo,
-      createdAt: Date.now(),
-      order: items.length
-    });
-
-    save();
-    render();
-
-    document.getElementById("title").value = "";
-    document.getElementById("url").value = "";
-    document.getElementById("memo").value = "";
-  };
-
-  render();
-</script>
-
+        // 起動時処理
+        migrateData();
+        render();
+    </script>
 </body>
 </html>
