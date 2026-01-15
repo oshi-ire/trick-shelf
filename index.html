@@ -2,305 +2,298 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ヨーヨートリック練習帳</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trick Shelf Mobile</title>
     <style>
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --secondary-text: #6c757d;
+            --danger-color: #dc3545;
+        }
         body {
-            font-family: sans-serif;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 0 10px;
-            background-color: #f4f4f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.5;
         }
         h1 {
             text-align: center;
-            color: #333;
-        }
-        .input-area {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 1.5rem;
             margin-bottom: 20px;
         }
-        .input-group {
-            margin-bottom: 10px;
+        /* フォームエリア */
+        .form-container {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
-        .input-group label {
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
             display: block;
-            margin-bottom: 5px;
             font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
         }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button#add-btn {
+        input[type="text"], textarea {
             width: 100%;
             padding: 10px;
-            background-color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        textarea {
+            height: 80px;
+            resize: none;
+        }
+        #add-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
             cursor: pointer;
         }
-        button#add-btn:hover {
-            background-color: #0056b3;
-        }
-        .trick-list {
+        /* リストエリア */
+        .list-container {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
-        .trick-item {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
+        .item-card {
+            background: var(--card-bg);
             margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
-        .trick-info {
+        .item-card.pressing {
+            background-color: #f0f0f0;
+        }
+        .item-main {
             flex-grow: 1;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
-        .trick-name {
+        .item-title {
             font-weight: bold;
             text-decoration: none;
-            color: #333;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            word-break: break-all;
         }
-        .trick-name.has-url {
-            color: #007bff;
-        }
-        .memo-btn {
+        .info-btn {
             background: none;
             border: none;
+            font-size: 1.3rem;
+            color: var(--secondary-text);
+            padding: 5px;
             cursor: pointer;
-            font-size: 1.1em;
-            color: #6c757d;
-            padding: 0 4px;
         }
-        .controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .status-btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 80px;
-            font-size: 0.9em;
-        }
-        .status-unlearned { background-color: #e0e0e0; color: #333; }
-        .status-practicing { background-color: #fff3cd; color: #856404; }
-        .status-completed { background-color: #d4edda; color: #155724; }
-        
+        /* 編集モード（削除ボタン） */
         .delete-btn {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .delete-btn:hover {
-            background-color: #cc0000;
-        }
-
-        .sort-controls {
             display: none;
-            gap: 5px;
-            margin-right: 10px;
-        }
-        .sort-mode .sort-controls {
-            display: flex;
-        }
-        .sort-btn {
-            background-color: #6c757d;
+            background-color: var(--danger-color);
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 5px 8px;
-            cursor: pointer;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            margin-left: 10px;
         }
-        .trick-item.pressing {
-            background-color: #e9ecef;
+        .edit-mode .delete-btn {
+            display: block;
+        }
+        .edit-mode .info-btn {
+            display: none;
+        }
+        /* モーダル（簡易） */
+        .edit-hint {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+            margin-top: -10px;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
 
-    <h1>ヨーヨートリック練習帳</h1>
+    <h1>Trick Shelf Mobile</h1>
 
-    <div class="input-area">
-        <div class="input-group">
-            <label for="trick-name">トリック名</label>
-            <input type="text" id="trick-name" placeholder="例: トラピーズ">
+    <div class="form-container">
+        <div class="form-group">
+            <label>タイトル</label>
+            <input type="text" id="input-title" placeholder="トリック名">
         </div>
-        <div class="input-group">
-            <label for="trick-url">参考URL (任意)</label>
-            <input type="text" id="trick-url" placeholder="https://...">
+        <div class="form-group">
+            <label>URL</label>
+            <input type="text" id="input-url" placeholder="https://...">
         </div>
-        <button id="add-btn">追加</button>
+        <div class="form-group">
+            <label>メモ</label>
+            <textarea id="input-memo" placeholder="コツや注意点など"></textarea>
+        </div>
+        <button id="add-btn">追加する</button>
     </div>
 
-    <ul id="trick-list" class="trick-list"></ul>
+    <div class="edit-hint">長押し：編集・削除モード切替</div>
+    <ul id="item-list" class="list-container"></ul>
 
     <script>
-        const trickNameInput = document.getElementById('trick-name');
-        const trickUrlInput = document.getElementById('trick-url');
+        const STORAGE_KEY = 'trickShelfItems';
+        const listEl = document.getElementById('item-list');
+        const titleInput = document.getElementById('input-title');
+        const urlInput = document.getElementById('input-url');
+        const memoInput = document.getElementById('input-memo');
         const addBtn = document.getElementById('add-btn');
-        const trickListElement = document.getElementById('trick-list');
 
-        let tricks = JSON.parse(localStorage.getItem('yoyo-tricks')) || [];
-        let sortMode = false;
-        let pressTimer;
+        let items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let isEditMode = false;
 
-        const STATUS_LABELS = ['未習得', '練習中', 'できた'];
-        const STATUS_CLASSES = ['status-unlearned', 'status-practicing', 'status-completed'];
-
-        function saveTricks() {
-            localStorage.setItem('yoyo-tricks', JSON.stringify(tricks));
+        function save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
         }
 
-        function renderTricks() {
-            trickListElement.innerHTML = '';
-            if (sortMode) trickListElement.classList.add('sort-mode');
-            else trickListElement.classList.remove('sort-mode');
-
-            tricks.forEach((trick, index) => {
+        function render() {
+            listEl.innerHTML = '';
+            items.forEach((item, index) => {
                 const li = document.createElement('li');
-                li.className = 'trick-item';
-
-                const startPress = () => {
+                li.className = 'item-card' + (isEditMode ? ' edit-mode' : '');
+                
+                // 長押し判定用
+                let pressTimer;
+                const startPress = (e) => {
                     li.classList.add('pressing');
                     pressTimer = setTimeout(() => {
-                        sortMode = !sortMode;
-                        renderTricks();
+                        isEditMode = !isEditMode;
+                        render();
                     }, 600);
                 };
                 const endPress = () => {
                     clearTimeout(pressTimer);
                     li.classList.remove('pressing');
                 };
+
                 li.onmousedown = startPress;
                 li.onmouseup = endPress;
                 li.ontouchstart = startPress;
                 li.ontouchend = endPress;
 
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'trick-info';
-                
-                const nameLink = document.createElement('a');
-                nameLink.className = 'trick-name';
-                nameLink.textContent = trick.name;
-                if (trick.url) {
-                    nameLink.href = trick.url;
-                    nameLink.target = '_blank';
-                    nameLink.classList.add('has-url');
+                // メインコンテンツ
+                const main = document.createElement('div');
+                main.className = 'item-main';
+
+                const a = document.createElement('a');
+                a.className = 'item-title';
+                a.textContent = item.title;
+                if (item.url) {
+                    a.href = item.url;
+                    a.target = '_blank';
                 }
-                nameLink.onclick = (e) => e.stopPropagation();
-                infoDiv.appendChild(nameLink);
-
-                // ⓘ ボタンの追加
-                const memoBtn = document.createElement('button');
-                memoBtn.className = 'memo-btn';
-                memoBtn.textContent = 'ⓘ';
-                memoBtn.onclick = (e) => {
+                a.onclick = (e) => {
+                    if (isEditMode) e.preventDefault();
                     e.stopPropagation();
-                    alert(trick.memo || 'メモなし');
                 };
-                infoDiv.appendChild(memoBtn);
+                main.appendChild(a);
 
-                const controlsDiv = document.createElement('div');
-                controlsDiv.className = 'controls';
-
-                const sortDiv = document.createElement('div');
-                sortDiv.className = 'sort-controls';
-                const upBtn = document.createElement('button');
-                upBtn.className = 'sort-btn';
-                upBtn.textContent = '▲';
-                upBtn.onclick = (e) => {
+                // ⓘ ボタン
+                const infoBtn = document.createElement('button');
+                infoBtn.className = 'info-btn';
+                infoBtn.textContent = 'ⓘ';
+                
+                let infoPressTimer;
+                infoBtn.onclick = (e) => {
                     e.stopPropagation();
-                    if (index > 0) {
-                        [tricks[index], tricks[index - 1]] = [tricks[index - 1], tricks[index]];
-                        saveTricks();
-                        renderTricks();
-                    }
+                    alert(item.memo || 'メモなし');
                 };
-                const downBtn = document.createElement('button');
-                downBtn.className = 'sort-btn';
-                downBtn.textContent = '▼';
-                downBtn.onclick = (e) => {
+                // ⓘ ボタン長押しでメモ編集
+                infoBtn.ontouchstart = (e) => {
                     e.stopPropagation();
-                    if (index < tricks.length - 1) {
-                        [tricks[index], tricks[index + 1]] = [tricks[index + 1], tricks[index]];
-                        saveTricks();
-                        renderTricks();
-                    }
+                    infoPressTimer = setTimeout(() => {
+                        const newMemo = prompt('メモを編集', item.memo || '');
+                        if (newMemo !== null) {
+                            item.memo = newMemo;
+                            save();
+                            render();
+                        }
+                    }, 600);
                 };
-                sortDiv.appendChild(upBtn);
-                sortDiv.appendChild(downBtn);
-                controlsDiv.appendChild(sortDiv);
+                infoBtn.ontouchend = () => clearTimeout(infoPressTimer);
+                infoBtn.onmousedown = infoBtn.ontouchstart;
+                infoBtn.onmouseup = infoBtn.ontouchend;
 
-                const statusBtn = document.createElement('button');
-                statusBtn.className = `status-btn ${STATUS_CLASSES[trick.status]}`;
-                statusBtn.textContent = STATUS_LABELS[trick.status];
-                statusBtn.onclick = (e) => {
+                // 削除ボタン
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.textContent = '🗑️';
+                delBtn.onclick = (e) => {
                     e.stopPropagation();
-                    trick.status = (trick.status + 1) % 3;
-                    saveTricks();
-                    renderTricks();
-                };
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.textContent = '削除';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if (confirm('このトリックを削除しますか？')) {
-                        tricks.splice(index, 1);
-                        saveTricks();
-                        renderTricks();
+                    if (confirm(`「${item.title}」を削除しますか？`)) {
+                        items.splice(index, 1);
+                        save();
+                        render();
                     }
                 };
 
-                controlsDiv.appendChild(statusBtn);
-                controlsDiv.appendChild(deleteBtn);
-                li.appendChild(infoDiv);
-                li.appendChild(controlsDiv);
-                trickListElement.appendChild(li);
+                li.appendChild(main);
+                li.appendChild(infoBtn);
+                li.appendChild(delBtn);
+                listEl.appendChild(li);
             });
         }
 
         addBtn.onclick = () => {
-            const name = trickNameInput.value.trim();
-            const url = trickUrlInput.value.trim();
-            if (!name) {
-                alert('トリック名を入力してください');
+            const title = titleInput.value.trim();
+            const url = urlInput.value.trim();
+            const memo = memoInput.value.trim();
+
+            if (!title) {
+                alert('タイトルを入力してください');
                 return;
             }
-            tricks.push({
-                name: name,
+
+            const newItem = {
+                title: title,
                 url: url,
-                status: 0
-            });
-            saveTricks();
-            renderTricks();
-            trickNameInput.value = '';
-            trickUrlInput.value = '';
+                memo: memo,
+                createdAt: Date.now(),
+                order: items.length
+            };
+
+            items.push(newItem);
+            save();
+            render();
+
+            // クリア
+            titleInput.value = '';
+            urlInput.value = '';
+            memoInput.value = '';
         };
 
-        renderTricks();
+        // 初期描画
+        render();
     </script>
 </body>
 </html>
