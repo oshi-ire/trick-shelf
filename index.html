@@ -7,6 +7,7 @@
     <style>
         :root {
             --primary-color: #007bff;
+            --success-color: #28a745;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-color: #333;
@@ -33,6 +34,11 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             margin-bottom: 20px;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .form-container.editing {
+            border-color: var(--success-color);
         }
         .form-group {
             margin-bottom: 12px;
@@ -55,7 +61,7 @@
             height: 80px;
             resize: none;
         }
-        #add-btn {
+        #submit-btn {
             width: 100%;
             padding: 12px;
             background-color: var(--primary-color);
@@ -65,6 +71,9 @@
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
+        }
+        #submit-btn.update {
+            background-color: var(--success-color);
         }
         /* リストエリア */
         .list-container {
@@ -88,6 +97,9 @@
         }
         .item-card.pressing {
             background-color: #f0f0f0;
+        }
+        .item-card.active-edit {
+            border: 2px solid var(--success-color);
         }
         .item-main {
             flex-grow: 1;
@@ -140,7 +152,7 @@
 
     <h1>Trick Shelf Mobile</h1>
 
-    <div class="form-container">
+    <div id="form-box" class="form-container">
         <div class="form-group">
             <label>タイトル</label>
             <input type="text" id="input-title" placeholder="トリック名">
@@ -153,7 +165,7 @@
             <label>メモ</label>
             <textarea id="input-memo" placeholder="コツや注意点など"></textarea>
         </div>
-        <button id="add-btn">追加する</button>
+        <button id="submit-btn">追加する</button>
     </div>
 
     <div class="edit-hint">長押し：編集・削除モード切替</div>
@@ -164,19 +176,20 @@
         const NEW_KEY = 'trickShelfItems';
         
         const listEl = document.getElementById('item-list');
+        const formBox = document.getElementById('form-box');
         const titleInput = document.getElementById('input-title');
         const urlInput = document.getElementById('input-url');
         const memoInput = document.getElementById('input-memo');
-        const addBtn = document.getElementById('add-btn');
+        const submitBtn = document.getElementById('submit-btn');
 
         let items = [];
         let isEditMode = false;
+        let editingIndex = null;
 
-        // 【移行処理】
+        // 移行処理
         function migrateData() {
             const oldData = localStorage.getItem(OLD_KEY);
             const newData = localStorage.getItem(NEW_KEY);
-
             if (oldData && !newData) {
                 try {
                     const parsedOld = JSON.parse(oldData);
@@ -185,15 +198,12 @@
                             title: oldItem.name || '無題',
                             url: oldItem.url || '',
                             memo: oldItem.memo || '',
-                            createdAt: Date.now() + index, // 重複回避のため少しずらす
+                            createdAt: Date.now() + index,
                             order: index
                         }));
                         save();
-                        console.log('Data migrated successfully.');
                     }
-                } catch (e) {
-                    console.error('Migration failed:', e);
-                }
+                } catch (e) { console.error(e); }
             } else if (newData) {
                 items = JSON.parse(newData);
             }
@@ -203,18 +213,42 @@
             localStorage.setItem(NEW_KEY, JSON.stringify(items));
         }
 
+        function resetForm() {
+            titleInput.value = '';
+            urlInput.value = '';
+            memoInput.value = '';
+            editingIndex = null;
+            isEditMode = false;
+            formBox.classList.remove('editing');
+            submitBtn.textContent = '追加する';
+            submitBtn.classList.remove('update');
+            render();
+        }
+
         function render() {
             listEl.innerHTML = '';
             items.forEach((item, index) => {
                 const li = document.createElement('li');
-                li.className = 'item-card' + (isEditMode ? ' edit-mode' : '');
+                li.className = 'item-card' + (isEditMode && editingIndex === index ? ' edit-mode active-edit' : '');
                 
-                // 長押し判定用
                 let pressTimer;
                 const startPress = () => {
                     li.classList.add('pressing');
                     pressTimer = setTimeout(() => {
-                        isEditMode = !isEditMode;
+                        // 編集モード起動
+                        isEditMode = true;
+                        editingIndex = index;
+                        
+                        // フォームに反映
+                        titleInput.value = item.title;
+                        urlInput.value = item.url;
+                        memoInput.value = item.memo;
+                        
+                        formBox.classList.add('editing');
+                        submitBtn.textContent = '更新する';
+                        submitBtn.classList.add('update');
+                        
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                         render();
                     }, 600);
                 };
@@ -228,10 +262,8 @@
                 li.ontouchstart = startPress;
                 li.ontouchend = endPress;
 
-                // メインコンテンツ
                 const main = document.createElement('div');
                 main.className = 'item-main';
-
                 const a = document.createElement('a');
                 a.className = 'item-title';
                 a.textContent = item.title;
@@ -245,33 +277,14 @@
                 };
                 main.appendChild(a);
 
-                // ⓘ ボタン
                 const infoBtn = document.createElement('button');
                 infoBtn.className = 'info-btn';
                 infoBtn.textContent = 'ⓘ';
-                
-                let infoPressTimer;
                 infoBtn.onclick = (e) => {
                     e.stopPropagation();
                     alert(item.memo || 'メモなし');
                 };
-                // ⓘ ボタン長押しでメモ編集
-                infoBtn.ontouchstart = (e) => {
-                    e.stopPropagation();
-                    infoPressTimer = setTimeout(() => {
-                        const newMemo = prompt('メモを編集', item.memo || '');
-                        if (newMemo !== null) {
-                            item.memo = newMemo;
-                            save();
-                            render();
-                        }
-                    }, 600);
-                };
-                infoBtn.ontouchend = () => clearTimeout(infoPressTimer);
-                infoBtn.onmousedown = infoBtn.ontouchstart;
-                infoBtn.onmouseup = infoBtn.ontouchend;
 
-                // 削除ボタン
                 const delBtn = document.createElement('button');
                 delBtn.className = 'delete-btn';
                 delBtn.textContent = '🗑️';
@@ -280,7 +293,7 @@
                     if (confirm(`「${item.title}」を削除しますか？`)) {
                         items.splice(index, 1);
                         save();
-                        render();
+                        resetForm();
                     }
                 };
 
@@ -291,7 +304,7 @@
             });
         }
 
-        addBtn.onclick = () => {
+        submitBtn.onclick = () => {
             const title = titleInput.value.trim();
             const url = urlInput.value.trim();
             const memo = memoInput.value.trim();
@@ -301,24 +314,26 @@
                 return;
             }
 
-            const newItem = {
-                title: title,
-                url: url,
-                memo: memo,
-                createdAt: Date.now(),
-                order: items.length
-            };
+            if (editingIndex !== null) {
+                // 更新処理
+                items[editingIndex].title = title;
+                items[editingIndex].url = url;
+                items[editingIndex].memo = memo;
+            } else {
+                // 新規追加
+                items.push({
+                    title: title,
+                    url: url,
+                    memo: memo,
+                    createdAt: Date.now(),
+                    order: items.length
+                });
+            }
 
-            items.push(newItem);
             save();
-            render();
-
-            titleInput.value = '';
-            urlInput.value = '';
-            memoInput.value = '';
+            resetForm();
         };
 
-        // 起動時処理
         migrateData();
         render();
     </script>
